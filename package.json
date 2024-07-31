@@ -10,6 +10,7 @@
   "dependencies": {
     "@apollo/server": "^4.10.5",
     "@graphql-tools/utils": "^10.3.2",
+    "async-sema": "^3.1.1",
     "axios": "^1.7.2",
     "graphql": "^16.9.0"
   },

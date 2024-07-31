@@ -7,26 +7,27 @@ import {
   getYmlFileContent,
   getActiveWebhooks,
 } from "../utils/github";
-import { Context } from "../context";
+import semaphore from "../utils/semaphore";
+import {
+  GET_REPOSITORY_DETAILS,
+  NUMBER_OF_FILES,
+  YML_FILE,
+  ACTIVE_WEBHOOKS,
+} from "../constants";
 
 const resolvers: IResolvers = {
   Query: {
     getRepositories: (_, { token }: { token: string }) =>
       getRepositories(token),
-    getRepositoryDetails: async (
+    [GET_REPOSITORY_DETAILS]: async (
       _,
       {
         token,
         owner,
         repository,
-      }: { token: string; owner: string; repository: string },
-      context: Context
+      }: { token: string; owner: string; repository: string }
     ) => {
-      context.callsCount++;
-      if (context.callsCount > 2) {
-        throw new Error("Maximum 2 repositories at a time in parallel allowed");
-      }
-
+      await semaphore.acquire();
       const params = {
         token,
         owner,
@@ -40,9 +41,9 @@ const resolvers: IResolvers = {
     },
   },
   RepositoryDetails: {
-    numberOfFiles: (parent) => getNumberOfFiles(parent.params),
-    ymlFile: (parent) => getYmlFileContent(parent.params),
-    activeWebhooks: (parent) => getActiveWebhooks(parent.params),
+    [NUMBER_OF_FILES]: (parent) => getNumberOfFiles(parent.params),
+    [YML_FILE]: (parent) => getYmlFileContent(parent.params),
+    [ACTIVE_WEBHOOKS]: (parent) => getActiveWebhooks(parent.params),
   },
 };
 
